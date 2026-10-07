@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Field Notes</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📓</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Figtree:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --base: #FEFAE0;
+    --paper: #FFFDF3;
+    --sand: #E9EDC9;
+    --sage: #CCD5AE;
+    --sage-deep: #A9B686;
+    --moss: #56663A;
+    --moss-dark: #445230;
+    --tan: #D4A373;
+    --ink: #37352A;
+    --ink-soft: #66644F;
+    --hl: #F0D0A2;
+    --serif: "Fraunces", Georgia, "Times New Roman", serif;
+    --sans: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background: var(--base);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 36px 20px 140px;
+    padding-left: max(20px, env(safe-area-inset-left));
+    padding-right: max(20px, env(safe-area-inset-right));
+  }
+
+  header { margin-bottom: 22px; }
+
+  h1 {
+    font-family: var(--serif);
+    font-weight: 600;
+    font-size: clamp(2.3rem, 7vw, 3.3rem);
+    line-height: 1.05;
+    letter-spacing: -0.015em;
+    margin: 0 0 10px;
+  }
+
+  .tagline {
+    margin: 0;
+    max-width: 46ch;
+    color: var(--ink-soft);
+    font-size: 1.05rem;
+  }
+
+  :focus-visible { outline: 3px solid var(--moss); outline-offset: 2px; }
+
+  /* ---------- Toolbar tray ---------- */
+  .tray {
+    position: sticky;
+    top: 12px;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 6px;
+    background: var(--sand);
+    border: 1px solid var(--sage-deep);
+    border-radius: 14px;
+    box-shadow: 0 4px 0 -1px var(--sage), 0 12px 22px -12px rgba(86, 102, 58, .45);
+  }
+  .tray .spacer { flex: 1; }
+  .tray .divider {
+    width: 1px;
+    align-self: stretch;
+    margin: 6px 4px;
+    background: var(--sage-deep);
+  }
+
+  .btn {
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0 .85rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: .45rem;
+    font: 600 .95rem/1 var(--sans);
+    color: var(--ink);
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color .15s ease, color .15s ease;
+  }
+  .btn:hover { background: var(--sage); }
+  .btn[aria-pressed="true"] { background: var(--ink); color: var(--base); }
+  .btn svg { flex: none; }
+
+  .btn-primary { background: var(--moss); color: var(--base); }
+  .btn-primary:hover { background: var(--moss-dark); }
+
+  .btn-quiet {
+    background: var(--paper);
+    border-color: var(--sage-deep);
+  }
+  .btn-quiet:hover { background: var(--sage); }
+
+  .fmt-b { font-weight: 800; font-size: 1.1rem; }
+  .fmt-i { font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1.15rem; }
+
+  .toast {
+    position: absolute;
+    top: calc(100% + 14px);
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 92%;
+    padding: 8px 14px;
+    background: var(--ink);
+    color: var(--base);
+    font-size: .88rem;
+    line-height: 1.3;
+    border-radius: 999px;
+    text-align: center;
+    pointer-events: none;
+  }
+  .toast:empty { display: none; }
+
+  /* ---------- Layered page ---------- */
+  .stack {
+    position: relative;
+    isolation: isolate;
+    margin: 26px 0 40px;
+  }
+  .stack::before,
+  .stack::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border: 1px solid var(--sage-deep);
+    border-radius: 10px;
+  }
+  .stack::before {
+    background: var(--sand);
+    transform: translate(-6px, 8px) rotate(-1.4deg);
+    z-index: -1;
+  }
+  .stack::after {
+    background: var(--sage);
+    transform: translate(7px, 15px) rotate(1.1deg);
+    z-index: -2;
+  }
+
+  .page {
+    position: relative;
+    background: var(--paper);
+    border: 1px solid var(--sage-deep);
+    border-radius: 10px;
+    padding: clamp(22px, 4vw, 40px);
+    padding-right: clamp(36px, 7vw, 70px);
+    box-shadow: 0 14px 26px -18px rgba(86, 102, 58, .6);
+  }
+  /* the elastic band of a field notebook */
+  .page::after {
+    content: "";
+    position: absolute;
+    top: -9px;
+    bottom: -9px;
+    right: clamp(14px, 3vw, 28px);
+    width: 10px;
+    background: var(--tan);
+    border-radius: 5px;
+    box-shadow: inset 0 0 0 1px rgba(55, 53, 42, .15);
+    pointer-events: none;
+  }
+
+  #editor {
+    position: relative;
+    min-height: 48vh;
+    outline: none;
+    caret-color: var(--moss);
+    font-size: 1.075rem;
+    line-height: 1.7;
+    overflow-wrap: anywhere;
+  }
+  #editor p { margin: 0 0 1em; }
+  #editor.is-empty::before {
+    content: attr(data-placeholder);
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    color: var(--ink-soft);
+    pointer-events: none;
+  }
+  #editor mark {
+    background: var(--hl);
+    color: inherit;
+    padding: .05em .15em;
+    border-radius: 3px;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+  }
+  #editor ::selection { background: var(--sage); }
+
+  /* ---------- Shelf ---------- */
+  .shelf {
+    background: var(--sand);
+    border: 1px solid var(--sage-deep);
+    border-radius: 14px;
+    padding: 14px 18px;
+  }
+  .shelf-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .count { color: var(--ink-soft); font-size: .95rem; }
+  .shelf-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+
+  details { border-top: 1px solid var(--sage-deep); margin-top: 14px; padding-top: 4px; }
+  summary {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-weight: 600;
+  }
+  .opt { display: flex; gap: .7rem; padding: .5rem 0; align-items: flex-start; }
+  .opt input { margin-top: .35rem; width: 18px; height: 18px; accent-color: var(--moss); flex: none; }
+  .opt span { display: block; }
+  .hint { display: block; color: var(--ink-soft); font-size: .9rem; line-height: 1.45; }
+  details p { margin: .4rem 0 .8rem; max-width: 60ch; color: var(--ink-soft); }
+
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; overflow: hidden;
+    clip: rect(0 0 0 0); white-space: nowrap;
+  }
+
+  /* ---------- Small screens: thumb-friendly toolbar ---------- */
+  @media (max-width: 640px) {
+    .wrap { padding-top: 28px; }
+    .tray {
+      position: fixed;
+      top: auto;
+      left: max(12px, env(safe-area-inset-left));
+      right: max(12px, env(safe-area-inset-right));
+      bottom: calc(12px + env(safe-area-inset-bottom));
+    }
+    .toast { top: auto; bottom: calc(100% + 12px); }
+    .btn { padding: 0 .6rem; }
+    .btn .label { display: none; }
+    .btn-primary .label { display: inline; }
+    .page { padding-right: 34px; }
+    .page::after { right: 10px; width: 8px; }
+    #editor { min-height: 42vh; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Field Notes</h1>
+    <p class="tagline">Paste from a PDF and the broken lines join up. Mark what matters, then copy it into Notion.</p>
+  </header>
+
+  <div class="tray" role="toolbar" aria-label="Formatting and copy">
+    <button class="btn" type="button" data-cmd="bold" aria-pressed="false" aria-label="Bold"><span class="fmt-b">B</span></button>
+    <button class="btn" type="button" data-cmd="italic" aria-pressed="false" aria-label="Italic"><span class="fmt-i">I</span></button>
+    <button class="btn" type="button" data-cmd="highlight" aria-pressed="false" aria-label="Highlight">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 11-5 5v3h5l2-2"/><path d="m13 7 4 4"/><path d="M11 9l5-5 4 4-5 5z"/><path d="M4 21h8"/></svg>
+      <span class="label">Highlight</span>
+    </button>
+    <span class="divider" aria-hidden="true"></span>
+    <button class="btn" type="button" id="pasteBtn" aria-label="Paste from clipboard">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/></svg>
+      <span class="label">Paste</span>
+    </button>
+    <span class="spacer"></span>
+    <button class="btn btn-primary" type="button" id="copyBtn"><span class="label">Copy for Notion</span></button>
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  </div>
+
+  <main class="stack">
+    <div class="page">
+      <div id="editor"
+           contenteditable="true"
+           role="textbox"
+           aria-multiline="true"
+           aria-label="Your notes"
+           spellcheck="false"
+           autocapitalize="off"
+           autocorrect="off"
+           data-placeholder="Paste text from your reading here. Lines that were broken by the PDF are joined as you paste."></div>
+    </div>
+  </main>
+
+  <section class="shelf" aria-label="Page tools">
+    <div class="shelf-row">
+      <span class="count" id="count">Nothing on the page yet</span>
+      <div class="shelf-actions">
+        <button class="btn btn-quiet" type="button" id="mdBtn">Copy as Markdown</button>
+        <button class="btn btn-quiet" type="button" id="clearBtn">Clear page</button>
+      </div>
+    </div>
+
+    <details>
+      <summary>Joining options</summary>
+      <label class="opt">
+        <input type="checkbox" id="optJoin" checked>
+        <span>Join broken lines as I paste
+          <span class="hint">Turn this off to paste text exactly as copied.</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="optHyphen" checked>
+        <span>Mend words split by a hyphen
+          <span class="hint">“environ-” and “mental” become “environmental”. Turn off if it merges real compounds like twentieth-century.</span></span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="optSplit" checked>
+        <span>Guess where paragraphs end
+          <span class="hint">A short line that ends a sentence, followed by a capital letter, starts a new paragraph.</span></span>
+      </label>
+    </details>
+
+    <details>
+      <summary>Copying into Notion</summary>
+      <p>Copy for Notion keeps bold and italics. Notion doesn’t always keep highlights from a paste, so if one goes missing, add it again in Notion. Copy as Markdown carries bold and italics only.</p>
+    </details>
+  </section>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var HL = '#F0D0A2';
+  var editor = document.getElementById('editor');
+  var toast = document.getElementById('toast');
+  var countEl = document.getElementById('count');
+  var STORE_DOC = 'fieldnotes:doc';
+  var STORE_OPTS = 'fieldnotes:opts';
+
+  try { document.execCommand('defaultParagraphSeparator', false, 'p'); } catch (e) {}
+
+  /* ---------- helpers ---------- */
+  function esc(s) {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  var toastTimer;
+  function say(msg) {
+    toast.textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { toast.textContent = ''; }, 2800);
+  }
+
+  function selectionInEditor() {
+    var sel = window.getSelection();
+    return sel && sel.rangeCount && editor.contains(sel.anchorNode);
+  }
+
+  /* ---------- options ---------- */
+  var optEls = {
+    join: document.getElementById('optJoin'),
+    hyphen: document.getElementById('optHyphen'),
+    split: document.getElementById('optSplit')
+  };
+  var opts = { join: true, hyphen: true, split: true };
+  try {
+    var savedOpts = JSON.parse(localStorage.getItem(STORE_OPTS) || 'null');
+    if (savedOpts) { opts.join = savedOpts.join !== false; opts.hyphen = savedOpts.hyphen !== false; opts.split = savedOpts.split !== false; }
+  } catch (e) {}
+  Object.keys(optEls).forEach(function (k) {
+    optEls[k].checked = opts[k];
+    optEls[k].addEventListener('change', function () {
+      opts[k] = optEls[k].checked;
+      try { localStorage.setItem(STORE_OPTS, JSON.stringify(opts)); } catch (e) {}
+    });
+  });
+
+  /* ---------- cleaning pasted PDF text ---------- */
+  var LIGATURES = { '\uFB00': 'ff', '\uFB01': 'fi', '\uFB02': 'fl', '\uFB03': 'ffi', '\uFB04': 'ffl', '\uFB05': 'st', '\uFB06': 'st' };
+
+  function cleanText(raw, o) {
+    var t = raw
+      .replace(/\r\n?/g, '\n')
+      .replace(/[\uFB00-\uFB06]/g, function (c) { return LIGATURES[c]; })
+      .replace(/[\u00A0\u2007\u202F]/g, ' ')
+      .replace(/[\u200B\u200C\u200D\uFEFF]/g, '')
+      .replace(/\u00AD[ \t]*\n[ \t]*/g, '')   // soft hyphen at a line break
+      .replace(/\u00AD/g, '');
+
+    var blocks = t.split(/\n[ \t]*\n+/);
+    var paragraphs = [];
+
+    blocks.forEach(function (block) {
+      var lines = block.split('\n')
+        .map(function (l) { return l.replace(/[ \t]+/g, ' ').trim(); })
+        .filter(Boolean);
+      if (!lines.length) return;
+
+      var groups = [[]];
+      if (o.split && lines.length > 1) {
+        var maxLen = Math.max.apply(null, lines.map(function (l) { return l.length; }));
+        lines.forEach(function (line, i) {
+          groups[groups.length - 1].push(line);
+          var next = lines[i + 1];
+          if (next &&
+              line.length < maxLen * 0.75 &&
+              /[.!?]["'\u201D\u2019)\]]?$/.test(line) &&
+              /^["'\u201C\u2018(\[A-Z0-9]/.test(next)) {
+            groups.push([]);
+          }
+        });
+      } else {
+        groups[0] = lines;
+      }
+
+      groups.forEach(function (g) {
+        if (!g.length) return;
+        var out = '';
+        g.forEach(function (line) {
+          if (!out) { out = line; return; }
+          if (o.hyphen &&
+              /[A-Za-z\u00C0-\u024F]-$/.test(out) &&
+              /^[a-z\u00DF-\u00FF]/.test(line)) {
+            out = out.slice(0, -1) + line;
+          } else {
+            out += ' ' + line;
+          }
+        });
+        paragraphs.push(out);
+      });
+    });
+
+    return paragraphs;
+  }
+
+  function ensureCaret() {
+    if (selectionInEditor()) return;
+    editor.focus();
+    var sel = window.getSelection();
+    var r = document.createRange();
+    r.selectNodeContents(editor);
+    r.collapse(false);
+    sel.removeAllRanges();
+    sel.addRange(r);
+  }
+
+  function insertText(raw) {
+    if (!raw || !raw.trim()) { say('Nothing to paste'); return; }
+    var rawLines = raw.split(/\r\n?|\n/).filter(function (l) { return l.trim(); }).length;
+    var paras;
+    if (opts.join) {
+      paras = cleanText(raw, opts);
+    } else {
+      paras = raw.replace(/\r\n?/g, '\n').split('\n').map(function (l) { return l.trim(); }).filter(Boolean);
+    }
+    if (!paras.length) return;
+
+    ensureCaret();
+    var html = paras.map(function (p) { return '<p>' + esc(p) + '</p>'; }).join('');
+    document.execCommand('insertHTML', false, html);
+    afterEdit();
+
+    if (opts.join && rawLines > paras.length) {
+      say('Joined ' + rawLines + ' lines into ' + paras.length + (paras.length === 1 ? ' paragraph' : ' paragraphs'));
+    } else {
+      say('Pasted');
+    }
+  }
+
+  editor.addEventListener('paste', function (e) {
+    e.preventDefault();
+    var cd = e.clipboardData || window.clipboardData;
+    insertText(cd ? cd.getData('text/plain') : '');
+  });
+
+  document.getElementById('pasteBtn').addEventListener('click', function () {
+    if (!navigator.clipboard || !navigator.clipboard.readText) {
+      say('Press and hold on the page, then choose Paste');
+      return;
+    }
+    navigator.clipboard.readText().then(insertText).catch(function () {
+      say('Blocked by the browser. Press and hold on the page, then choose Paste');
+    });
+  });
+
+  /* ---------- formatting ---------- */
+  function textSegments(range) {
+    var root = range.commonAncestorContainer;
+    var nodes = [];
+    if (root.nodeType === 3) {
+      nodes.push(root);
+    } else {
+      var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      var n;
+      while ((n = w.nextNode())) { if (range.intersectsNode(n)) nodes.push(n); }
+    }
+    var segs = [];
+    nodes.forEach(function (node) {
+      var start = node === range.startContainer ? range.startOffset : 0;
+      var end = node === range.endContainer ? range.endOffset : node.nodeValue.length;
+      if (start < end && node.nodeValue.slice(start, end).trim() !== '') {
+        segs.push({ node: node, start: start, end: end });
+      }
+    });
+    return segs;
+  }
+
+  function toggleHighlight() {
+    var sel = window.getSelection();
+    if (!selectionInEditor() || sel.isCollapsed) { say('Select some text first'); return; }
+    var segs = textSegments(sel.getRangeAt(0));
+    if (!segs.length) { say('Select some text first'); return; }
+
+    var allMarked = segs.every(function (s) { return s.node.parentElement.closest('mark'); });
+    if (allMarked) {
+      var marks = [];
+      segs.forEach(function (s) {
+        var m = s.node.parentElement.closest('mark');
+        if (marks.indexOf(m) === -1) marks.push(m);
+      });
+      marks.forEach(function (m) {
+        var parent = m.parentNode;
+        while (m.firstChild) parent.insertBefore(m.firstChild, m);
+        parent.removeChild(m);
+        parent.normalize();
+      });
+    } else {
+      segs.forEach(function (s) {
+        if (s.node.parentElement.closest('mark')) return;
+        if (s.end < s.node.nodeValue.length) s.node.splitText(s.end);
+        var target = s.start > 0 ? s.node.splitText(s.start) : s.node;
+        var m = document.createElement('mark');
+        target.parentNode.insertBefore(m, target);
+        m.appendChild(target);
+      });
+    }
+    sel.removeAllRanges();
+    afterEdit();
+    refreshState();
+  }
+
+  document.querySelectorAll('[data-cmd]').forEach(function (btn) {
+    // keep the text selection while tapping toolbar buttons
+    btn.addEventListener('pointerdown', function (e) { e.preventDefault(); });
+    btn.addEventListener('mousedown', function (e) { e.preventDefault(); });
+    btn.addEventListener('click', function () {
+      var cmd = btn.getAttribute('data-cmd');
+      if (cmd === 'highlight') { toggleHighlight(); return; }
+      var sel = window.getSelection();
+      if (!selectionInEditor() || sel.isCollapsed) { say('Select some text first'); return; }
+      document.execCommand(cmd, false, null);
+      afterEdit();
+      refreshState();
+    });
+  });
+
+  function refreshState() {
+    var inside = selectionInEditor();
+    var sel = window.getSelection();
+    var states = { bold: false, italic: false, highlight: false };
+    if (inside) {
+      try {
+        states.bold = document.queryCommandState('bold');
+        states.italic = document.queryCommandState('italic');
+      } catch (e) {}
+      var range = sel.getRangeAt(0);
+      if (sel.isCollapsed) {
+        var el = sel.anchorNode.nodeType === 3 ? sel.anchorNode.parentElement : sel.anchorNode;
+        states.highlight = !!(el && el.closest && el.closest('mark'));
+      } else {
+        var segs = textSegments(range);
+        states.highlight = segs.length > 0 && segs.every(function (s) { return s.node.parentElement.closest('mark'); });
+      }
+    }
+    document.querySelectorAll('[data-cmd]').forEach(function (b) {
+      b.setAttribute('aria-pressed', states[b.getAttribute('data-cmd')] ? 'true' : 'false');
+    });
+  }
+  document.addEventListener('selectionchange', refreshState);
+
+  /* ---------- reading the page back out ---------- */
+  function inlineHTML(n) {
+    if (n.nodeType === 3) return esc(n.nodeValue);
+    if (n.nodeType !== 1) return '';
+    var inner = Array.prototype.map.call(n.childNodes, inlineHTML).join('');
+    switch (n.tagName) {
+      case 'B': case 'STRONG': return inner ? '<b>' + inner + '</b>' : '';
+      case 'I': case 'EM': return inner ? '<i>' + inner + '</i>' : '';
+      case 'MARK': return inner ? '<mark style="background-color:' + HL + '">' + inner + '</mark>' : '';
+      case 'BR': return '<br>';
+      default: return inner;
+    }
+  }
+
+  function inlineMD(n) {
+    if (n.nodeType === 3) return n.nodeValue;
+    if (n.nodeType !== 1) return '';
+    var inner = Array.prototype.map.call(n.childNodes, inlineMD).join('');
+    function wrap(mark) {
+      var m = inner.match(/^(\s*)([\s\S]*?)(\s*)$/);
+      return m[2] ? m[1] + mark + m[2] + mark + m[3] : inner;
+    }
+    switch (n.tagName) {
+      case 'B': case 'STRONG': return wrap('**');
+      case 'I': case 'EM': return wrap('*');
+      case 'BR': return '\n';
+      default: return inner;
+    }
+  }
+
+  var BLOCK = /^(P|DIV|H[1-6]|BLOCKQUOTE|LI)$/;
+
+  function collect(fn, isEmpty) {
+    var res = [], buf = '';
+    function flush() { if (!isEmpty(buf)) res.push(buf); buf = ''; }
+    Array.prototype.forEach.call(editor.childNodes, function (n) {
+      if (n.nodeType === 1 && BLOCK.test(n.tagName)) { flush(); buf = fn(n); flush(); }
+      else { buf += fn(n); }
+    });
+    flush();
+    return res;
+  }
+
+  function paragraphsHTML() {
+    return collect(inlineHTML, function (s) { return s.replace(/<br>/g, '').trim() === ''; });
+  }
+  function paragraphsMD() {
+    return collect(inlineMD, function (s) { return s.trim() === ''; });
+  }
+
+  /* ---------- copy ---------- */
+  function legacyCopyHTML(html) {
+    var holder = document.createElement('div');
+    holder.contentEditable = 'true';
+    holder.innerHTML = html;
+    holder.style.cssText = 'position:fixed;left:-9999px;top:0;';
+    document.body.appendChild(holder);
+    var sel = window.getSelection();
+    var r = document.createRange();
+    r.selectNodeContents(holder);
+    sel.removeAllRanges();
+    sel.addRange(r);
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    sel.removeAllRanges();
+    holder.remove();
+    return ok;
+  }
+
+  function legacyCopyText(text) {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;left:-9999px;top:0;';
+    document.body.appendChild(ta);
+    ta.select();
+    var ok = false;
+    try { ok = document.execCommand('copy'); } catch (e) {}
+    ta.remove();
+    return ok;
+  }
+
+  document.getElementById('copyBtn').addEventListener('click', function () {
+    var ps = paragraphsHTML();
+    if (!ps.length) { say('Nothing to copy yet'); return; }
+    var html = '<meta charset="utf-8">' + ps.map(function (p) { return '<p>' + p + '</p>'; }).join('');
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    tmp.querySelectorAll('br').forEach(function (b) { b.replaceWith('\n'); });
+    var text = Array.prototype.map.call(tmp.querySelectorAll('p'), function (p) { return p.textContent; }).join('\n\n');
+
+    function done(ok) { say(ok ? 'Copied. Paste it into Notion' : 'Copy failed. Try again'); }
+
+    if (navigator.clipboard && window.ClipboardItem) {
+      var item = new ClipboardItem({
+        'text/html': new Blob([html], { type: 'text/html' }),
+        'text/plain': new Blob([text], { type: 'text/plain' })
+      });
+      navigator.clipboard.write([item]).then(function () { done(true); }).catch(function () { done(legacyCopyHTML(html)); });
+    } else {
+      done(legacyCopyHTML(html));
+    }
+  });
+
+  document.getElementById('mdBtn').addEventListener('click', function () {
+    var ps = paragraphsMD();
+    if (!ps.length) { say('Nothing to copy yet'); return; }
+    var md = ps.join('\n\n');
+    function done(ok) { say(ok ? 'Markdown copied' : 'Copy failed. Try again'); }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(md).then(function () { done(true); }).catch(function () { done(legacyCopyText(md)); });
+    } else {
+      done(legacyCopyText(md));
+    }
+  });
+
+  /* ---------- clear page (two taps) ---------- */
+  var clearBtn = document.getElementById('clearBtn');
+  var clearTimer;
+  clearBtn.addEventListener('click', function () {
+    if (clearBtn.getAttribute('data-armed') === 'true') {
+      editor.innerHTML = '';
+      afterEdit();
+      clearBtn.removeAttribute('data-armed');
+      clearBtn.textContent = 'Clear page';
+      say('Page cleared');
+      clearTimeout(clearTimer);
+    } else {
+      clearBtn.setAttribute('data-armed', 'true');
+      clearBtn.textContent = 'Tap again to clear';
+      clearTimer = setTimeout(function () {
+        clearBtn.removeAttribute('data-armed');
+        clearBtn.textContent = 'Clear page';
+      }, 3000);
+    }
+  });
+
+  /* ---------- housekeeping: placeholder, count, local save ---------- */
+  var saveTimer;
+  function afterEdit() {
+    if (!editor.textContent.trim() && editor.innerHTML !== '') editor.innerHTML = '';
+    editor.classList.toggle('is-empty', !editor.textContent.trim());
+
+    var plain = editor.textContent.trim();
+    if (!plain) {
+      countEl.textContent = 'Nothing on the page yet';
+    } else {
+      var n = paragraphsHTML().length;
+      var words = plain.split(/\s+/).length;
+      countEl.textContent = n + (n === 1 ? ' paragraph' : ' paragraphs') + ', ' + words + (words === 1 ? ' word' : ' words');
+    }
+
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () {
+      try { localStorage.setItem(STORE_DOC, JSON.stringify(paragraphsHTML())); } catch (e) {}
+    }, 400);
+  }
+  editor.addEventListener('input', afterEdit);
+
+  try {
+    var saved = JSON.parse(localStorage.getItem(STORE_DOC) || '[]');
+    if (Array.isArray(saved) && saved.length) {
+      editor.innerHTML = saved.map(function (p) { return '<p>' + p + '</p>'; }).join('');
+    }
+  } catch (e) {}
+  afterEdit();
+})();
+</script>
+</body>
+</html>
