@@ -259,7 +259,10 @@
       left: max(12px, env(safe-area-inset-left));
       right: max(12px, env(safe-area-inset-right));
       bottom: calc(12px + env(safe-area-inset-bottom));
+      /* lifted by JS when the on-screen keyboard is open */
+      transform: translateY(calc(var(--kb, 0px) * -1));
     }
+    .tray.kb-open { bottom: 8px; }
     .toast { top: auto; bottom: calc(100% + 12px); }
     .btn { padding: 0 .6rem; }
     .btn .label { display: none; }
@@ -734,6 +737,24 @@
       }, 3000);
     }
   });
+
+  /* ---------- keep the toolbar above the on-screen keyboard (iPhone) ---------- */
+  var tray = document.querySelector('.tray');
+  function placeTray() {
+    var vv = window.visualViewport;
+    if (!vv) return;
+    var offset = 0;
+    if (vv.scale <= 1.01) {
+      offset = Math.max(0, window.innerHeight - vv.height - vv.offsetTop);
+    }
+    tray.style.setProperty('--kb', offset + 'px');
+    tray.classList.toggle('kb-open', offset > 80);
+  }
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', placeTray);
+    window.visualViewport.addEventListener('scroll', placeTray);
+    placeTray();
+  }
 
   /* ---------- housekeeping: placeholder, count, local save ---------- */
   var saveTimer;
